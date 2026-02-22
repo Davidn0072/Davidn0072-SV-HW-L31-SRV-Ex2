@@ -6,36 +6,17 @@ const { generateText } = require('ai');
 
 const app = express();
 
+// שימוש ב-CORS וב-JSON
 app.use(cors());
 app.use(express.json());
 
-// יצירת connection יחידה שנשמרת
-let cachedConnection = null;
-
-async function connectToDatabase() {
-  if (cachedConnection) {
-    console.log('Using cached MongoDB connection');
-    return cachedConnection;
-  }
-
-  try {
-    console.log('Creating new MongoDB connection');
-    const DB_URL = process.env.DB_URL;
-    
-    const connection = await mongoose.connect(DB_URL, {
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
-    
-    cachedConnection = connection;
-    console.log('Connected to MongoDB');
-    return connection;
-  } catch (err) {
-    console.log('MongoDB connection error:', err);
-    throw err;
-  }
-}
-
+console.log('Connected to MongoDB-BEFORE-11');
+const DB_URL = process.env.DB_URL;
+console.log('Connected to MongoDB-BEFORE');
+mongoose.connect(DB_URL)
+    .then(() => console.log('Connected to MongoDB'))
+    .catch((err) => console.log(err));
+console.log('Connected to MongoDB-AFTER');
 // סכמת מתכון
 const recipeSchema = new mongoose.Schema({
     title: String,
@@ -48,7 +29,6 @@ const RecipeModel = mongoose.model('Recipe', recipeSchema);
 // Routes
 app.get('/recipes', async (req, res) => {
     try {
-        await connectToDatabase();
         const recipes = await RecipeModel.find();
         res.json(recipes);
     } catch (err) {
@@ -58,7 +38,6 @@ app.get('/recipes', async (req, res) => {
 
 app.post('/recipes', async (req, res) => {
     try {
-        await connectToDatabase();
         const recipe = new RecipeModel({
             title: req.body.title,
             ingredients: req.body.ingredients,
@@ -73,7 +52,6 @@ app.post('/recipes', async (req, res) => {
 
 app.delete('/recipes/:id', async (req, res) => {
     try {
-        await connectToDatabase();
         await RecipeModel.findByIdAndDelete(req.params.id);
         res.json({ message: 'Recipe deleted' });
     } catch (err) {
@@ -83,7 +61,6 @@ app.delete('/recipes/:id', async (req, res) => {
 
 app.post('/recipes/generate', async (req, res) => {
     try {
-        await connectToDatabase();
         const title = req.body.title;
         const ingredients = req.body.ingredients;
         console.log("title: ", title);
@@ -106,6 +83,7 @@ app.get('/', (req, res) => {
     res.send({ message: 'Hello World-11' });
 });
 
+// שימוש בפורט מה-Environment (ל-Vercel) או פורט לוקלי
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
