@@ -71,6 +71,27 @@ app.post('/recipes', async (req, res) => {
     }
 });
 
+// Must be registered before /recipes/:id so paths like /recipes/generate are not captured as an id.
+app.post('/recipes/generate', async (req, res) => {
+    try {
+        await connectToDatabase();
+        const title = req.body.title;
+        const ingredients = req.body.ingredients;
+        console.log("title: ", title);
+        console.log("ingredients: ", ingredients);
+
+        const { text } = await generateText({
+            model: "anthropic/claude-sonnet-4.5",
+            prompt: `Write a short recipe for "${title}" using these ingredients: ${ingredients}. Limit to 20 words.`
+        });
+
+        console.log("text: ", text);
+        res.send({ recipe: text });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
 app.get('/recipes/:id', async (req, res) => {
     try {
         await connectToDatabase();
@@ -78,7 +99,7 @@ app.get('/recipes/:id', async (req, res) => {
         if (!recipe) {
             return res.status(404).json({ message: 'Recipe not found' });
         }
-        res.json(recpe);
+        res.json(recipe);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -110,26 +131,6 @@ app.delete('/recipes/:id', async (req, res) => {
         await connectToDatabase();
         await RecipeModel.findByIdAndDelete(req.params.id);
         res.json({ message: 'Recipe deleted' });
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-});
-
-app.post('/recipes/generate', async (req, res) => {
-    try {
-        await connectToDatabase();
-        const title = req.body.title;
-        const ingredients = req.body.ingredients;
-        console.log("title: ", title);
-        console.log("ingredients: ", ingredients);
-
-        const { text } = await generateText({
-            model: "anthropic/claude-sonnet-4.5",
-            prompt: `Write a short recipe for "${title}" using these ingredients: ${ingredients}. Limit to 20 words.`
-        });
-
-        console.log("text: ", text);
-        res.send({ recipe: text });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
