@@ -71,6 +71,40 @@ app.post('/recipes', async (req, res) => {
     }
 });
 
+app.get('/recipes/:id', async (req, res) => {
+    try {
+        await connectToDatabase();
+        const recipe = await RecipeModel.findById(req.params.id);
+        if (!recipe) {
+            return res.status(404).json({ message: 'Recipe not found' });
+        }
+        res.json(recpe);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+app.put('/recipes/:id', async (req, res) => {
+    try {
+        await connectToDatabase();
+        const recipe = await RecipeModel.findByIdAndUpdate(
+            req.params.id,
+            {
+                title: req.body.title,
+                ingredients: req.body.ingredients,
+                instructions: req.body.instructions,
+            },
+            { new: true, runValidators: true }
+        );
+        if (!recipe) {
+            return res.status(404).json({ message: 'Recipe not found' });
+        }
+        res.json({ message: 'Recipe updated', recipe });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
 app.delete('/recipes/:id', async (req, res) => {
     try {
         await connectToDatabase();
