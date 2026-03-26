@@ -13,27 +13,27 @@ app.use(express.json());
 let cachedConnection = null;
 
 async function connectToDatabase() {
-  if (cachedConnection) {
-    console.log('Using cached MongoDB connection');
-    return cachedConnection;
-  }
+    if (cachedConnection) {
+        console.log('Using cached MongoDB connection');
+        return cachedConnection;
+    }
 
-  try {
-    console.log('Creating new MongoDB connection');
-    const DB_URL = process.env.DB_URL;
-    
-    const connection = await mongoose.connect(DB_URL, {
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
-    
-    cachedConnection = connection;
-    console.log('Connected to MongoDB');
-    return connection;
-  } catch (err) {
-    console.log('MongoDB connection error:', err);
-    throw err;
-  }
+    try {
+        console.log('Creating new MongoDB connection');
+        const DB_URL = process.env.DB_URL;
+
+        const connection = await mongoose.connect(DB_URL, {
+            serverSelectionTimeoutMS: 5000,
+            socketTimeoutMS: 45000,
+        });
+
+        cachedConnection = connection;
+        console.log('Connected to MongoDB');
+        return connection;
+    } catch (err) {
+        console.log('MongoDB connection error:', err);
+        throw err;
+    }
 }
 
 // סכמת מתכון
